@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Recarga Games — Ganhe créditos</title>
+<style>
+:root {
+  --orange: #FF6A00;
+  --purple: #8B5CF6;
+  --lime:   #B8E14A;
+  --bg:     #0E0E12;
+  --surface:#17171F;
+  --surface2:#1F1F2A;
+  --text:   #F4F4F8;
+  --text-dim:#9CA3AF;
+  --border: #2A2A38;
+  --danger: #EF4444;
+  --success:#22C55E;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--orange), var(--purple));
+}
+
+.brand-text small { display: block; color: var(--text-dim); font-weight: 400; font-size: 11px; }
+
+.user-area { display: flex; align-items: center; gap: 12px; }
+.user-email { color: var(--text-dim); font-size: 14px; }
+
+.btn {
+  border: none; border-radius: 8px; padding: 10px 16px;
+  font-weight: 600; cursor: pointer; font-size: 14px;
+  transition: filter 120ms ease, transform 120ms ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn:hover { filter: brightness(1.1); }
+.btn-primary { background: var(--orange); color: #fff; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost { background: transparent; color: var(--text-dim); }
+.btn-cta {
+  background: linear-gradient(135deg, var(--orange), var(--purple));
+  color: #fff;
+  padding: 12px 18px;
+  width: 100%;
+  font-size: 15px;
+}
+.btn-cta[disabled] { opacity: 0.55; cursor: not-allowed; filter: grayscale(0.4); }
+
+.hero {
+  max-width: 1100px; margin: 0 auto; padding: 40px 24px 16px;
+  text-align: center;
+}
+.hero h1 {
+  font-size: clamp(24px, 4vw, 36px);
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, var(--orange), var(--purple));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p { color: var(--text-dim); font-size: 15px; }
+
+.grid {
+  max-width: 1100px; margin: 0 auto; padding: 24px;
+  display: grid; gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+.card:hover { transform: translateY(-2px); border-color: var(--orange); }
+
+.card-img {
+  width: 100%; aspect-ratio: 2 / 1;
+  background: var(--surface2) center/cover no-repeat;
+}
+.card-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.card-title { font-size: 16px; font-weight: 700; }
+.card-desc { font-size: 13px; color: var(--text-dim); flex: 1; }
+
+.reward-pill {
+  display: inline-block;
+  background: rgba(184, 225, 74, 0.12);
+  color: var(--lime);
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 700;
+  align-self: flex-start;
+}
+
+.empty, .loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-dim);
+  padding: 48px 24px;
+}
+
+/* Login overlay */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  width: 100%; max-width: 380px;
+}
+.modal h2 { margin-bottom: 6px; }
+.modal-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 18px; }
+.input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.input:focus { outline: none; border-color: var(--orange); }
+.modal-err { color: var(--danger); font-size: 13px; min-height: 18px; margin: 4px 0 10px; }
+.modal-toggle {
+  text-align: center; font-size: 13px; color: var(--text-dim); margin-top: 12px;
+}
+.modal-toggle a { color: var(--orange); cursor: pointer; text-decoration: none; }
+.modal-toggle a:hover { text-decoration: underline; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 18px; border-radius: 10px;
+  font-size: 14px;
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div class="brand-text">
+      Recarga Games
+      <small>Offerwall · BR</small>
+    </div>
+  </div>
+  <div class="user-area">
+    <span class="user-email" id="user-email"></span>
+    <button class="btn btn-ghost" id="btn-auth" onclick="openLogin()">Entrar</button>
+  </div>
+</div>
+
+<section class="hero">
+  <h1>Ganhe créditos de verdade</h1>
+  <p>Complete uma oferta abaixo e o crédito vai direto pra sua carteira Recarga Games.</p>
+</section>
+
+<main class="grid" id="grid">
+  <div class="loading">Carregando ofertas…</div>
+</main>
+
+<!-- Login / Signup overlay -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">Entrar</h2>
+    <p class="modal-sub" id="modal-sub">Use a mesma conta da loja Recarga Games.</p>
+    <input type="email" class="input" id="email" placeholder="seu@email.com" autocomplete="email">
+    <input type="password" class="input" id="password" placeholder="Senha" autocomplete="current-password">
+    <div class="modal-err" id="modal-err"></div>
+    <button class="btn btn-primary" style="width:100%" id="modal-submit" onclick="doAuth()">Entrar</button>
+    <div class="modal-toggle">
+      <span id="toggle-prompt">Não tem conta?</span>
+      <a id="toggle-link" onclick="toggleMode()">Criar conta</a>
+      &nbsp;·&nbsp;
+      <a onclick="closeLogin()">Fechar</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ══ CONSTANTS ══
+// Mesmo projeto Supabase da loja. Publishable key é pública por design (RLS protege).
+const SB_URL = 'https://ashmirzgyuhspymldpfv.supabase.co';
+const SB_KEY = 'sb_publishable_rGZqf4_vv2XzF4N3wZUwEg_rVoZUV_j';
+
+const sb = supabase.createClient(SB_URL, SB_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+
+// ══ STATE ══
+let currentUser = null;
+let currentSession = null;
+let offers = [];
+let authMode = 'signin'; // 'signin' | 'signup'
+let sessionId = localStorage.getItem('rg_ow_session') || crypto.randomUUID();
+localStorage.setItem('rg_ow_session', sessionId);
+
+// ══ HELPERS ══
+function toast(msg, ms = 2400) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function deviceType() {
+  const ua = navigator.userAgent;
+  if (/Mobi|Android|iPhone/.test(ua)) return 'mobile';
+  if (/iPad|Tablet/.test(ua)) return 'tablet';
+  return 'desktop';
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function moneyBRL(v) {
+  return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// ══ AUTH UI ══
+function openLogin() { document.getElementById('overlay').classList.add('show'); }
+function closeLogin() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('modal-err').textContent = '';
+  document.getElementById('password').value = '';
+}
+
+function toggleMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('modal-title').textContent = authMode === 'signin' ? 'Entrar' : 'Criar conta';
+  document.getElementById('modal-sub').textContent = authMode === 'signin'
+    ? 'Use a mesma conta da loja Recarga Games.'
+    : 'Crie sua conta pra começar a resgatar.';
+  document.getElementById('modal-submit').textContent = authMode === 'signin' ? 'Entrar' : 'Criar conta';
+  document.getElementById('toggle-prompt').textContent = authMode === 'signin' ? 'Não tem conta?' : 'Já tem conta?';
+  document.getElementById('toggle-link').textContent  = authMode === 'signin' ? 'Criar conta' : 'Entrar';
+  document.getElementById('password').setAttribute('autocomplete', authMode === 'signin' ? 'current-password' : 'new-password');
+  document.getElementById('modal-err').textContent = '';
+}
+
+async function doAuth() {
+  const email = document.getElementById('email').value.trim();
+  const pw = document.getElementById('password').value;
+  const errEl = document.getElementById('modal-err');
+  errEl.textContent = '';
+
+  if (!email || !pw) { errEl.textContent = 'Preencha email e senha.'; return; }
+
+  const fn = authMode === 'signin' ? 'signInWithPassword' : 'signUp';
+  const { data, error } = await sb.auth[fn]({ email, password: pw });
+
+  if (error) {
+    errEl.textContent = error.message || 'Erro ao autenticar.';
+    return;
+  }
+
+  if (authMode === 'signup' && !data?.session) {
+    // Confirmação por email pode estar ligada no projeto.
+    errEl.textContent = '';
+    toast('Verifique seu email pra confirmar a conta.');
+    closeLogin();
+    return;
+  }
+
+  closeLogin();
+  toast('Bem-vindo!');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+}
+
+function renderAuthArea() {
+  const emailEl = document.getElementById('user-email');
+  const btnEl = document.getElementById('btn-auth');
+  if (currentUser) {
+    emailEl.textContent = currentUser.email || '';
+    btnEl.textContent = 'Sair';
+    btnEl.onclick = doLogout;
+  } else {
+    emailEl.textContent = '';
+    btnEl.textContent = 'Entrar';
+    btnEl.onclick = openLogin;
+  }
+  refreshCardButtons();
+}
+
+// ══ OFFERS ══
+async function loadOffers() {
+  const grid = document.getElementById('grid');
+  try {
+    // RLS deixa passar só status='active', então não precisa filtrar aqui — mas
+    // explicitar é defesa em profundidade.
+    const { data, error } = await sb
+      .from('offerwall_offers')
+      .select('id, name, description, reward_amount, reward_currency, creative_image_url, priority')
+      .eq('status', 'active')
+      .order('priority', { ascending: false });
+
+    if (error) throw error;
+    offers = data || [];
+
+    if (offers.length === 0) {
+      grid.innerHTML = '<div class="empty">Nenhuma oferta disponível agora. Volte mais tarde.</div>';
+      return;
+    }
+
+    grid.innerHTML = offers.map(o => `
+      <article class="card" data-id="${escapeHtml(o.id)}">
+        <div class="card-img" style="background-image:url('${escapeHtml(o.creative_image_url || '')}')"></div>
+        <div class="card-body">
+          <div class="card-title">${escapeHtml(o.name)}</div>
+          <div class="card-desc">${escapeHtml(o.description || '')}</div>
+          <span class="reward-pill">+ ${moneyBRL(o.reward_amount)}</span>
+          <button class="btn btn-cta" onclick="onCtaClick('${escapeHtml(o.id)}')"></button>
+        </div>
+      </article>
+    `).join('');
+
+    refreshCardButtons();
+    logImpressions();
+  } catch (e) {
+    console.error('loadOffers', e);
+    grid.innerHTML = '<div class="empty">Não foi possível carregar as ofertas. Tente recarregar.</div>';
+  }
+}
+
+function refreshCardButtons() {
+  document.querySelectorAll('.btn-cta').forEach(btn => {
+    btn.textContent = currentUser ? 'Resgatar oferta' : 'Entre para resgatar';
+  });
+}
+
+async function logImpressions() {
+  if (!offers.length) return;
+  const rows = offers.map(o => ({
+    offer_id: o.id,
+    user_id: currentUser?.id || null,
+    session_id: sessionId,
+    is_guest: !currentUser,
+    user_agent: navigator.userAgent.slice(0, 500),
+    device_type: deviceType(),
+    placement: 'landing'
+  }));
+  const { error } = await sb.from('offerwall_impressions').insert(rows);
+  if (error) console.warn('impression insert failed:', error.message);
+}
+
+function onCtaClick(offerId) {
+  if (!currentUser || !currentSession?.access_token) {
+    openLogin();
+    return;
+  }
+  // Form POST → Edge Function valida o JWT, registra o clique e devolve 302.
+  // Token vai no body (não na URL) pra não vazar em logs de proxy/referrer.
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/click';
+  for (const [name, value] of [['offer_id', offerId], ['access_token', currentSession.access_token]]) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
+// ══ INIT ══
+async function init() {
+  const { data } = await sb.auth.getSession();
+  currentSession = data?.session || null;
+  currentUser = currentSession?.user || null;
+  renderAuthArea();
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    currentSession = session || null;
+    currentUser = session?.user || null;
+    renderAuthArea();
+  });
+
+  await loadOffers();
+}
+
+init();
+</script>
+</body>
+</html>
