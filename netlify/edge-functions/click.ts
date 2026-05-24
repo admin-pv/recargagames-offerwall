@@ -18,6 +18,13 @@ import type { Context, Config } from "https://edge.netlify.com/";
 
 const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_SECRET_KEY"] as const;
 
+// Publishable key (sb_publishable_...) — pública por design, mesma usada no
+// index.html. Necessária como `apikey` nas rotas /auth/v1/* do Supabase:
+// o GoTrue exige a publishable key pra identificar o projeto nessas rotas;
+// a secret key não é aceita como apikey de auth (resulta em 401).
+// O Bearer continua sendo o access_token do usuário.
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rGZqf4_vv2XzF4N3wZUwEg_rVoZUV_j";
+
 function deviceTypeFromUA(ua: string | null): string | null {
   if (!ua) return null;
   if (/iPad|Tablet/i.test(ua)) return "tablet";
@@ -53,8 +60,8 @@ export default async (req: Request, ctx: Context): Promise<Response> => {
       return new Response("Server misconfigured", { status: 500 });
     }
   }
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  const SUPABASE_SECRET_KEY = Deno.env.get("SUPABASE_SECRET_KEY")!;
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!.trim().replace(/\/+$/, "");
+  const SUPABASE_SECRET_KEY = Deno.env.get("SUPABASE_SECRET_KEY")!.trim();
 
   const { offer_id, access_token } = await readParams(req);
   if (!offer_id || !access_token) {
@@ -62,18 +69,22 @@ export default async (req: Request, ctx: Context): Promise<Response> => {
   }
 
   // 1. Valida JWT → user_id
+  // apikey = publishable key (rota de auth do GoTrue exige), Bearer = JWT do usuário
   const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: {
       Authorization: `Bearer ${access_token}`,
-      apikey: SUPABASE_SECRET_KEY,
+      apikey: SUPABASE_PUBLISHABLE_KEY,
     },
   });
   if (!userRes.ok) {
+    const body = await userRes.text().catch(() => "");
+    console.error("auth/v1/user failed:", userRes.status, body);
     return new Response("Unauthorized", { status: 401 });
   }
   const user = await userRes.json();
   const user_id = user?.id;
   if (!user_id) {
+    console.error("auth/v1/user returned no id:", JSON.stringify(user));
     return new Response("Unauthorized", { status: 401 });
   }
 
